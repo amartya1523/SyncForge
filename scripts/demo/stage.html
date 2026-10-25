@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>SyncForge demo stage</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0a0a0c;
+        color: #ecebe8;
+        font-family: -apple-system, 'Inter', 'Segoe UI', sans-serif;
+        overflow: hidden;
+      }
+      header {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 0 28px;
+      }
+      .logo {
+        width: 30px;
+        height: 30px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #ff6a3d, #ffb547);
+        box-shadow: 0 0 30px -4px #ff6a3d;
+      }
+      header b {
+        font-size: 18px;
+        letter-spacing: -0.01em;
+      }
+      header span {
+        color: #9a9aa3;
+        font-size: 15px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        padding: 0 18px 18px;
+        height: calc(100% - 74px);
+      }
+      .pane {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 0.1);
+        display: flex;
+        flex-direction: column;
+      }
+      .pane .label {
+        height: 36px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 16px;
+        background: #111114;
+        border-bottom: 1px solid rgb(255 255 255 / 0.08);
+        font-size: 14px;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 99px;
+      }
+      .mono {
+        font-family: ui-monospace, 'SF Mono', monospace;
+        color: #9a9aa3;
+        font-size: 15px;
+      }
+      /* render each user at a real desktop width (sidebar visible), then shrink it into the pane */
+      .viewport {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+      }
+      iframe {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: 0;
+        width: calc(100% / 0.75);
+        height: calc(100% / 0.75);
+        transform: scale(0.75);
+        transform-origin: 0 0;
+        background: #0a0a0c;
+      }
+      #end {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: radial-gradient(60% 60% at 50% 40%, rgb(255 106 61 / 0.18), #0a0a0c 70%);
+        z-index: 50;
+      }
+      #end h1 {
+        font-family: Georgia, serif;
+        font-weight: 400;
+        font-size: 92px;
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      #end em {
+        background: linear-gradient(100deg, #ff6a3d, #ffb547);
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+        margin-top: 56px;
+      }
+      .stat {
+        border: 1px solid rgb(255 255 255 / 0.12);
+        border-radius: 22px;
+        padding: 26px 30px;
+        background: rgb(255 255 255 / 0.03);
+        min-width: 220px;
+      }
+      .stat b {
+        font-size: 36px;
+        display: block;
+      }
+      .stat span {
+        color: #9a9aa3;
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo"></div>
+      <b>SyncForge</b>
+      <span>live demo · two users · two server nodes</span>
+    </header>
+    <main>
+      <div class="pane">
+        <div class="label"><span class="dot" style="background: #ff6a3d"></span> Ada <span class="mono">→ node-a · localhost:4000</span></div>
+        <div class="viewport"><iframe id="left" src="about:blank"></iframe></div>
+      </div>
+      <div class="pane">
+        <div class="label"><span class="dot" style="background: #5eead4"></span> Grace <span class="mono">→ node-b · 127.0.0.1:4001 (via Redis)</span></div>
+        <div class="viewport"><iframe id="right" src="about:blank"></iframe></div>
+      </div>
+    </main>
+    <div id="end">
+      <div style="text-align: center">
+        <h1>Many hands. <em>One</em> document.</h1>
+        <div class="stats">
+          <div class="stat"><b>3,000</b><span>fuzzed schedules, 0 divergences</span></div>
+          <div class="stat"><b>100 bots</b><span>2 nodes, all converged</span></div>
+          <div class="stat"><b>48 ms</b><span>p99 edit → peer latency</span></div>
+          <div class="stat"><b>0 deps</b><span>for the CRDT — written from scratch</span></div>
+        </div>
+        <p class="mono" style="margin-top: 48px; font-size: 22px">github.com/amartya1523/SyncForge</p>
+      </div>
+    </div>
+  </body>
+</html>
