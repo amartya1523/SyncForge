@@ -8,6 +8,5 @@ coverage
 .DS_Store
 /test-results
 /docs/media/raw
-.claude
 *.tsbuildinfo
 next-env.d.ts
