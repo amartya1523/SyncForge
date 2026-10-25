@@ -16,6 +16,12 @@ export interface InsOp {
   o: ID | null
   r: ID | null
   s: string
+  /**
+   * Set when this run re-creates deleted characters (undo, version restore): the
+   * ids it replaces, one per char. Cursors and comment anchors that pointed at the
+   * old chars follow them to the new ones on every replica.
+   */
+  rv?: DeleteRange[]
 }
 
 /** Delete ranges of characters: [client, firstClock, length]. Occupies one clock. */
@@ -66,4 +72,20 @@ export function idKey(id: ID): string {
 export function sameId(a: ID | null, b: ID | null): boolean {
   if (a === null || b === null) return a === b
   return a.client === b.client && a.clock === b.clock
+}
+
+export function expandRanges(ranges: DeleteRange[]): ID[] {
+  const out: ID[] = []
+  for (const [client, clock, len] of ranges) for (let k = 0; k < len; k++) out.push({ client, clock: clock + k })
+  return out
+}
+
+export function compressIds(ids: ID[]): DeleteRange[] {
+  const out: DeleteRange[] = []
+  for (const id of ids) {
+    const last = out[out.length - 1]
+    if (last && last[0] === id.client && last[1] + last[2] === id.clock) last[2]++
+    else out.push([id.client, id.clock, 1])
+  }
+  return out
 }

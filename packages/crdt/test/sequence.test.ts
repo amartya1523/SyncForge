@@ -224,6 +224,26 @@ describe('version history', () => {
     ])
   })
 
+  it('comment anchors and cursors follow text brought back by a restore, on every replica', () => {
+    const a = new Doc({ clientId: 'a' })
+    a.insert(0, 'keep the quick brown fox')
+    const v1 = a.stateVector()
+    const anchor = a.anchor(9, 20)! // "quick brown"
+    const caret = a.relativePosition(15) // inside "quick brown"
+    a.delete(9, 12)
+    expect(a.resolveAnchor(anchor)).toBeNull()
+
+    a.restoreText(v1)
+    const r = a.resolveAnchor(anchor)!
+    expect(a.text().slice(r.from, r.to)).toBe('quick brown')
+    expect(a.resolvePosition(caret)).toBe(15)
+
+    const b = new Doc({ clientId: 'b' })
+    b.apply(a.encode())
+    const rb = b.resolveAnchor(anchor)!
+    expect(b.text().slice(rb.from, rb.to)).toBe('quick brown')
+  })
+
   it('restore is a forward edit and keeps concurrent work', () => {
     const e = new Doc({ clientId: 'e' })
     e.insert(0, 'Intro. Body.')

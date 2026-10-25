@@ -6,6 +6,8 @@ import {
   type Op,
   type SetOp,
   type StateVector,
+  compressIds,
+  expandRanges,
   idKey,
   opLength,
   sameId,
@@ -69,6 +71,8 @@ export class Doc {
 
   private head: Item | null = null
   private items = new Map<string, Item>()
+  /** old char id -> the char that re-created it (see InsOp.rv) */
+  private revivedAs = new Map<string, Item>()
   private visible = 0
 
   /** every op in the order it was integrated, so any slice of it is causally ordered */
@@ -204,8 +208,9 @@ export class Doc {
     return op
   }
 
-  private insertBetween(left: Item | null, right: Item | null, s: string): InsOp {
+  private insertBetween(left: Item | null, right: Item | null, s: string, rv?: DeleteRange[]): InsOp {
     const op: InsOp = { t: 'ins', id: this.nextId(), o: left ? left.id : null, r: right ? right.id : null, s }
+    if (rv) op.rv = rv
     this.commitLocal(op)
     return op
   }
@@ -314,8 +319,10 @@ export class Doc {
       const prev = out[out.length - 1]
       if (
         op.t === 'ins' &&
+        !op.rv &&
         prev &&
         prev.t === 'ins' &&
+        !prev.rv &&
         prev.id.client === c &&
         prev.id.clock + prev.s.length === op.id.clock &&
         sameId(op.o, { client: c, clock: op.id.clock - 1 }) &&
@@ -394,9 +401,11 @@ export class Doc {
       case 'ins': {
         const right = op.r ? this.items.get(idKey(op.r))! : null
         let origin = op.o ? this.items.get(idKey(op.o))! : null
+        const revives = op.rv ? expandRanges(op.rv) : null
         for (let k = 0; k < op.s.length; k++) {
           const item = new Item({ client: op.id.client, clock: op.id.clock + k }, op.s[k], origin, right)
           this.integrateItem(item)
+          if (revives?.[k]) this.revivedAs.set(idKey(revives[k]), item)
           origin = item
         }
         text = true
@@ -508,11 +517,19 @@ export class Doc {
     return { id: this.visibleAt(Math.min(index, this.visible) - 1).id }
   }
 
+  /** A deleted char that was later re-created (undo, restore) stands in for its copy. */
+  private follow(item: Item): Item {
+    let cur = item
+    for (let next = this.revivedAs.get(idKey(cur.id)); cur.deleted && next; next = this.revivedAs.get(idKey(cur.id))) cur = next
+    return cur
+  }
+
   /** null if the char it points at hasn't reached this replica yet */
   resolvePosition(pos: RelativePosition): number | null {
     if (!pos.id) return 0
-    const item = this.items.get(idKey(pos.id))
-    if (!item) return null
+    const found = this.items.get(idKey(pos.id))
+    if (!found) return null
+    const item = this.follow(found)
     return this.indexOf(item) + (item.deleted ? 0 : 1)
   }
 
@@ -524,9 +541,11 @@ export class Doc {
 
   /** null when the anchored text has been deleted entirely */
   resolveAnchor(a: Anchor): { from: number; to: number } | null {
-    const start = this.items.get(idKey(a.start))
-    const end = this.items.get(idKey(a.end))
-    if (!start || !end) return null
+    const s0 = this.items.get(idKey(a.start))
+    const e0 = this.items.get(idKey(a.end))
+    if (!s0 || !e0) return null
+    const start = this.follow(s0)
+    const end = this.follow(e0)
     const from = this.indexOf(start)
     const to = this.indexOf(end) + (end.deleted ? 0 : 1)
     return to > from ? { from, to } : null
@@ -595,7 +614,7 @@ export class Doc {
     const pairs: Array<[ID, ID]> = []
     for (const g of groups) {
       const last = g[g.length - 1]
-      const op = this.insertBetween(last, last.right, g.map((it) => it.char).join(''))
+      const op = this.insertBetween(last, last.right, g.map((it) => it.char).join(''), compressIds(g.map((it) => it.id)))
       g.forEach((it, k) => pairs.push([it.id, { client: op.id.client, clock: op.id.clock + k }]))
     }
     return pairs
@@ -653,7 +672,11 @@ function trimKnown(op: Op, next: number): Op | null {
   if (op.id.clock >= next) return op
   const cut = next - op.id.clock
   const id = { client: op.id.client, clock: next }
-  if (op.t === 'ins') return { t: 'ins', id, o: { client: op.id.client, clock: next - 1 }, r: op.r, s: op.s.slice(cut) }
+  if (op.t === 'ins') {
+    const sliced: InsOp = { t: 'ins', id, o: { client: op.id.client, clock: next - 1 }, r: op.r, s: op.s.slice(cut) }
+    if (op.rv) sliced.rv = compressIds(expandRanges(op.rv).slice(cut))
+    return sliced
+  }
   if (op.t === 'gc') return { t: 'gc', id, len: op.len - cut }
   return null
 }
@@ -669,7 +692,13 @@ export function isValidOp(op: unknown): op is Op {
   if (!o || typeof o !== 'object' || !isId(o.id)) return false
   switch (o.t) {
     case 'ins':
-      return typeof o.s === 'string' && o.s.length > 0 && (o.o === null || isId(o.o)) && (o.r === null || isId(o.r))
+      return (
+        typeof o.s === 'string' &&
+        o.s.length > 0 &&
+        (o.o === null || isId(o.o)) &&
+        (o.r === null || isId(o.r)) &&
+        (o.rv === undefined || (Array.isArray(o.rv) && o.rv.every((r) => Array.isArray(r) && typeof r[0] === 'string' && Number.isInteger(r[1]) && r[2] > 0)))
+      )
     case 'del':
       return (
         Array.isArray(o.d) &&

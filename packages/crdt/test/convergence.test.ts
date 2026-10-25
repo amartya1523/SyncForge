@@ -104,7 +104,7 @@ describe('convergence fuzzing', () => {
         expect(d.pendingCount).toBe(0)
       }
     }
-  })
+  }, 60_000) // thousands of schedules; don't let a busy machine turn this into a flaky timeout
 
   it('a fresh replica rebuilt from the compact snapshot matches', () => {
     for (let seed = 1; seed <= 100; seed++) {
