@@ -1,0 +1,10 @@
+node_modules
+.next
+dist
+coverage
+*.log
+.env
+.env.local
+.DS_Store
+/test-results
+/scripts/recordings/raw

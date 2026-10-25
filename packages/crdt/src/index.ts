@@ -1,0 +1,8 @@
+export * from './types'
+export { Doc, Item, isValidOp } from './doc'
+export type { UpdateEvent, Entry, DocOptions, RelativePosition, Anchor } from './doc'
+export { UndoManager } from './undo'
+export { diffText, transformIndex } from './text-diff'
+export type { TextChange } from './text-diff'
+export { randomClientId, seededRandom } from './random'
+export { svCovers, svDiffCount, svMerge } from './state-vector'

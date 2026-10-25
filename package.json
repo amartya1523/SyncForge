@@ -1,0 +1,14 @@
+{
+  "name": "syncforge",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @syncforge/server & npm run dev --workspace @syncforge/web",
+    "test": "npm test --workspace @syncforge/crdt && npm test --workspace @syncforge/server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "loadtest": "npm run loadtest --workspace @syncforge/server"
+  }
+}
