@@ -1,0 +1,51 @@
+# Two sync nodes behind one Redis + Postgres, plus the web app.
+# Open http://localhost:3000 and http://127.0.0.1:3000/?node=4001 to put two users on different nodes.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: syncforge
+      POSTGRES_PASSWORD: syncforge
+      POSTGRES_DB: syncforge
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U syncforge']
+      interval: 2s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      retries: 20
+
+  node-a: &node
+    build: { context: ., dockerfile: apps/server/Dockerfile }
+    environment: &env
+      SERVER_ID: node-a
+      DATABASE_URL: postgres://syncforge:syncforge@postgres:5432/syncforge
+      REDIS_URL: redis://redis:6379
+      SYNCFORGE_SECRET: ${SYNCFORGE_SECRET:-change-me-in-production}
+    ports: ['4000:4000']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  node-b:
+    <<: *node
+    environment:
+      <<: *env
+      SERVER_ID: node-b
+    ports: ['4001:4000']
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args: { NEXT_PUBLIC_SYNC_URL: http://localhost:4000 }
+    ports: ['3000:3000']
+    depends_on: [node-a, node-b]
+
+volumes:
+  pgdata:
