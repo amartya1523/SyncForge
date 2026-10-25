@@ -7,5 +7,7 @@ coverage
 .env.local
 .DS_Store
 /test-results
-/scripts/recordings/raw
+/docs/media/raw
 .claude
+*.tsbuildinfo
+next-env.d.ts

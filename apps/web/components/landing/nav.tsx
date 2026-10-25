@@ -20,7 +20,7 @@ export function Nav() {
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         'sticky top-0 z-50 border-b transition-colors duration-300',
-        scrolled ? 'glass border-line' : 'border-transparent bg-transparent',
+        scrolled ? 'border-line bg-ink/90 backdrop-blur-xl' : 'border-transparent bg-transparent',
       )}
     >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">

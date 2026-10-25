@@ -195,7 +195,14 @@ function Rig() {
 export default function ForgeScene({ className }: { className?: string }) {
   return (
     <div className={className}>
-      <Canvas dpr={[1, 1.75]} camera={{ position: [0, 0.4, 8.2], fov: 42 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
+      <Canvas
+        dpr={[1, 1.75]}
+        camera={{ position: [0, 0.4, 8.2], fov: 42 }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+        // measure layout size, not the on-screen rect: the hero scales this in on mount and on
+        // scroll, and a transform doesn't fire ResizeObserver, so the canvas would stay too small
+        resize={{ offsetSize: true }}
+      >
         <ambientLight intensity={0.35} />
         <pointLight position={[0, 0, 0]} intensity={40} color="#ff7a3d" distance={12} />
         <directionalLight position={[4, 5, 6]} intensity={0.9} color="#ffe1c2" />

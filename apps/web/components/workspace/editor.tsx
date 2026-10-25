@@ -101,7 +101,9 @@ export function Editor({ collab, readOnly, blame, activeComment, onActiveComment
       else if (selection.current) {
         const a = doc.resolvePosition(selection.current.anchor) ?? 0
         const h = doc.resolvePosition(selection.current.head) ?? 0
-        if (document.activeElement === el) el.setSelectionRange(Math.min(a, h), Math.max(a, h), a > h ? 'backward' : 'forward')
+        // also when unfocused: assigning .value moves the selection to the end, so someone
+        // who clicked into the comment box would come back to a caret in the wrong place
+        el.setSelectionRange(Math.min(a, h), Math.max(a, h), a > h ? 'backward' : 'forward')
         // keep the comment composer's quote pointing at the same words
         onSelection({ from: Math.min(a, h), to: Math.max(a, h) })
       }
