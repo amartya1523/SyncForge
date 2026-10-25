@@ -122,6 +122,19 @@ export function Editor({ collab, readOnly, blame, activeComment, onActiveComment
   }, [doc, pull])
 
   useEffect(() => {
+    // after clicking a button (Restore, Save…) focus sits on <body>; ⌘Z should still work
+    function onKey(e: KeyboardEvent) {
+      if (readOnly || document.activeElement !== document.body) return
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return
+      e.preventDefault()
+      const caret = e.shiftKey ? undo.redo() : undo.undo()
+      if (caret !== null) pull()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [undo, pull, readOnly])
+
+  useEffect(() => {
     const onResize = () => autosize()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)

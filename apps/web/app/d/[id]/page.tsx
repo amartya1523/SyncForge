@@ -7,7 +7,9 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { SignInCard } from '@/components/sign-in'
 import { Button, Spinner } from '@/components/ui'
+import { Aurora } from '@/components/fx/motion'
 import { Board } from '@/components/workspace/board'
+import { SyncBuddy } from '@/components/workspace/buddy'
 import { MobileViewTabs, ShareDialog, TopBar, VersionPreview, type View } from '@/components/workspace/chrome'
 import { Editor } from '@/components/workspace/editor'
 import { type Panel, Sidebar } from '@/components/workspace/sidebar'
@@ -106,10 +108,17 @@ function Room({ docId, session }: { docId: string; session: NonNullable<ReturnTy
 
       <div className="flex min-h-0 flex-1">
         <main className="relative min-w-0 flex-1">
+          {view === 'doc' && <Aurora intensity={0.55} />}
           {view === 'doc' ? (
             <div className="scroll-thin absolute inset-0 overflow-y-auto">
               <div className="dot-grid pointer-events-none absolute inset-x-0 top-0 h-72 [mask-image:linear-gradient(black,transparent)]" />
-              <div className="relative mx-auto max-w-[760px] px-5 pb-10 pt-10 sm:px-8 sm:pt-14">
+              <motion.div
+                initial={{ opacity: 0, y: 24, rotateX: 8 }}
+                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{ type: 'spring', stiffness: 120, damping: 18 }}
+                style={{ transformPerspective: 1200 }}
+                className="paper relative mx-auto my-6 max-w-[820px] rounded-[28px] px-5 pb-10 pt-10 sm:my-10 sm:px-12 sm:pt-14"
+              >
                 <AnimatePresence>
                   {readOnly && collab.role && (
                     <motion.div
@@ -143,11 +152,13 @@ function Room({ docId, session }: { docId: string; session: NonNullable<ReturnTy
                     onSelection={onSelection}
                   />
                 )}
-              </div>
+              </motion.div>
             </div>
           ) : (
             <Board collab={collab} readOnly={readOnly} />
           )}
+
+          <SyncBuddy collab={collab} />
 
           <AnimatePresence>
             {collab.error && collab.status !== 'denied' && (

@@ -2,6 +2,9 @@
 
 import { Check, Radio } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef } from 'react'
+import { burst } from '@/components/fx/motion'
+import { Sparky } from '@/components/fx/sparky'
 
 interface Props {
   converged: boolean
@@ -11,8 +14,20 @@ interface Props {
 }
 
 export function ConvergenceBanner({ converged, inFlight, pending, hash }: Props) {
+  // celebrate the moment the replicas heal, not every render while converged
+  const was = useRef(converged)
+  const mascot = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (converged && !was.current) burst(mascot.current, { count: 50 })
+    was.current = converged
+  }, [converged])
+
   return (
-    <div className="relative min-h-[76px]">
+    <div className="relative flex min-h-[76px] items-center gap-3">
+      <div ref={mascot} className="hidden shrink-0 sm:block">
+        <Sparky mood={converged ? 'party' : inFlight > 0 ? 'working' : 'worried'} size={64} />
+      </div>
+      <div className="min-w-0 flex-1">
       <AnimatePresence mode="wait" initial={false}>
         {converged ? (
           <motion.div
@@ -59,6 +74,7 @@ export function ConvergenceBanner({ converged, inFlight, pending, hash }: Props)
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }

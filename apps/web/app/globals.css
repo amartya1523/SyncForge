@@ -168,3 +168,60 @@ body::after {
 .comment-mark.active {
   background: rgb(255 181 71 / 0.32);
 }
+
+/* ---- the document "sheet": glass card with a slowly rotating glow on its border ---- */
+@property --sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.paper {
+  background: linear-gradient(180deg, rgb(23 23 27 / 0.78), rgb(14 14 17 / 0.72));
+  box-shadow:
+    0 40px 120px -50px rgb(255 106 61 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--sweep), transparent 0deg, rgb(255 106 61 / 0.55) 60deg, transparent 120deg, rgb(94 234 212 / 0.35) 220deg, transparent 280deg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: sweep 9s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes sweep {
+  to {
+    --sweep: 360deg;
+  }
+}
+
+/* remote cursor name tags pop in like speech bubbles */
+.remote-caret > span {
+  animation: tag-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: bottom left;
+}
+
+@keyframes tag-pop {
+  from {
+    transform: scale(0.4) translateY(6px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paper::before,
+  .remote-caret > span {
+    animation: none;
+  }
+}

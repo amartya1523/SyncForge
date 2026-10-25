@@ -5,6 +5,8 @@ import { FileText, LogOut, Plus } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
+import { Aurora, Magnetic, Spotlight, Tilt } from '@/components/fx/motion'
+import { Sparky } from '@/components/fx/sparky'
 import { SignInCard } from '@/components/sign-in'
 import { Avatar, Button, Logo, Spinner } from '@/components/ui'
 import { api } from '@/lib/api'
@@ -68,8 +70,9 @@ export default function DocsPage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
+      <Aurora />
+      <Spotlight />
       <div className="dot-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[480px] w-[760px] -translate-x-1/2 rounded-full bg-ember/10 blur-[120px]" />
 
       <header className="relative mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
         <Logo />
@@ -95,7 +98,12 @@ export default function DocsPage() {
       <main className="relative mx-auto max-w-5xl px-5 pb-24">
         {session === undefined ? null : !session ? (
           <div className="grid min-h-[70vh] place-items-center">
-            <SignInCard onDone={setSession} />
+            <div className="flex flex-col items-center gap-2">
+              <motion.div initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 160, damping: 11, delay: 0.25 }}>
+                <Sparky mood="curious" size={84} say="Hey! What should I call you?" />
+              </motion.div>
+              <SignInCard onDone={setSession} />
+            </div>
           </div>
         ) : (
           <>
@@ -106,10 +114,12 @@ export default function DocsPage() {
                   Your <em className="text-gradient">documents</em>
                 </h1>
               </div>
-              <Button variant="primary" size="lg" onClick={create} disabled={creating}>
-                {creating ? <Spinner className="border-ink/30 border-t-ink" /> : <Plus className="size-4" />}
-                New document
-              </Button>
+              <Magnetic>
+                <Button variant="primary" size="lg" onClick={create} disabled={creating} className="group">
+                  {creating ? <Spinner className="border-ink/30 border-t-ink" /> : <Plus className="size-4 transition-transform duration-300 group-hover:rotate-90" />}
+                  New document
+                </Button>
+              </Magnetic>
             </div>
 
             {error && (
@@ -119,13 +129,13 @@ export default function DocsPage() {
             <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <AnimatePresence>
                 {docs?.map((d, i) => (
+                  <Tilt key={d.id} max={9} className="rounded-2xl">
                   <motion.button
-                    key={d.id}
                     layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0, transition: { delay: i * 0.04 } }}
+                    initial={{ opacity: 0, y: 24, rotateX: -25 }}
+                    animate={{ opacity: 1, y: 0, rotateX: 0, transition: { type: 'spring', stiffness: 180, damping: 18, delay: i * 0.06 } }}
                     onClick={() => router.push(`/d/${d.id}${window.location.search}`)}
-                    className="group relative overflow-hidden rounded-2xl border border-line bg-coal/70 p-5 text-left transition hover:-translate-y-0.5 hover:border-line-strong"
+                    className="group relative h-full w-full overflow-hidden rounded-2xl border border-line bg-coal/70 p-5 text-left backdrop-blur transition-colors hover:border-ember/40"
                   >
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ember/50 to-transparent opacity-0 transition group-hover:opacity-100" />
                     <div className="flex items-start justify-between gap-3">
@@ -139,6 +149,7 @@ export default function DocsPage() {
                     <h3 className="mt-5 truncate text-[15px] font-medium">{d.title}</h3>
                     <p className="mt-1 text-xs text-faint">Edited {ago(d.updatedAt)}</p>
                   </motion.button>
+                  </Tilt>
                 ))}
               </AnimatePresence>
             </div>
@@ -149,6 +160,7 @@ export default function DocsPage() {
                 animate={{ opacity: 1 }}
                 className="mt-6 rounded-3xl border border-dashed border-line-strong p-12 text-center"
               >
+                <Sparky mood="sleepy" size={70} className="mx-auto mb-3" />
                 <p className="font-display text-2xl">A blank anvil.</p>
                 <p className="mt-2 text-sm text-dim">Create a document, then open it in a second window (or send the link) to collaborate.</p>
               </motion.div>
