@@ -210,6 +210,20 @@ describe('version history', () => {
     expect(d.textAt(d.stateVector())).toBe(d.text())
   })
 
+  it('compares any version with now, char by char', () => {
+    const d = new Doc({ clientId: 'a' })
+    d.insert(0, 'the cat sat')
+    const v1 = d.stateVector()
+    d.delete(4, 3)
+    d.insert(4, 'dog')
+    expect(d.compare(v1)).toEqual([
+      { text: 'the ', kind: 'same' },
+      { text: 'dog', kind: 'added' },
+      { text: 'cat', kind: 'removed' },
+      { text: ' sat', kind: 'same' },
+    ])
+  })
+
   it('restore is a forward edit and keeps concurrent work', () => {
     const e = new Doc({ clientId: 'e' })
     e.insert(0, 'Intro. Body.')

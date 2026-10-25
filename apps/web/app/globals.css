@@ -1,0 +1,170 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #0a0a0c;
+  --color-coal: #111114;
+  --color-ash: #17171b;
+  --color-smoke: #1f1f25;
+  --color-line: rgb(255 255 255 / 0.075);
+  --color-line-strong: rgb(255 255 255 / 0.14);
+  --color-fg: #ecebe8;
+  --color-dim: #9a9aa3;
+  --color-faint: #5d5d66;
+  --color-ember: #ff6a3d;
+  --color-flare: #ffb547;
+  --color-tide: #5eead4;
+  --color-violet: #a78bfa;
+  --color-danger: #ff5c6c;
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-instrument), Georgia, serif;
+
+  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+  --animate-blink: blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+:root {
+  color-scheme: dark;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgb(255 106 61 / 0.35);
+}
+
+/* film grain over everything, very subtle */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  z-index: 100;
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--color-ember), var(--color-flare) 60%, #ffe1a8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: rgb(17 17 20 / 0.72);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.12) transparent;
+}
+
+/* ---- collaborative editor: textarea on top, decorations painted underneath ---- */
+.editor-surface,
+.editor-backdrop {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.8;
+  letter-spacing: -0.003em;
+  padding: 8px 2px 160px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  tab-size: 4;
+}
+
+.editor-surface {
+  caret-color: var(--color-ember);
+  resize: none;
+  outline: none;
+  background: transparent;
+  overflow: hidden;
+}
+
+.editor-backdrop {
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* an empty inline-block sits on the baseline, so give it a real line-box height */
+.remote-caret {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 1.3em;
+  vertical-align: -0.28em;
+}
+
+.remote-caret::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--caret);
+}
+
+.remote-caret > span {
+  position: absolute;
+  left: -1px;
+  bottom: calc(100% + 1px);
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #0a0a0c;
+  background: var(--caret);
+  padding: 3px 6px 3px 5px;
+  border-radius: 6px 6px 6px 1px;
+  transition: opacity 0.4s;
+}
+
+.remote-caret.quiet > span {
+  opacity: 0;
+}
+
+.comment-mark {
+  background: rgb(255 181 71 / 0.16);
+  border-bottom: 2px solid rgb(255 181 71 / 0.55);
+}
+
+.comment-mark.active {
+  background: rgb(255 181 71 / 0.32);
+}

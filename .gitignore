@@ -8,3 +8,4 @@ coverage
 .DS_Store
 /test-results
 /scripts/recordings/raw
+.claude

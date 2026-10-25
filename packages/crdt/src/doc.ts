@@ -542,6 +542,25 @@ export class Doc {
   }
 
   /**
+   * Compare the current text with the text at `sv`. Because deleted chars are kept
+   * as tombstones this is exact and needs no diff algorithm: each char is either in
+   * both, only now (added since), or only then (removed since).
+   */
+  compare(sv: StateVector): Array<{ text: string; kind: 'same' | 'added' | 'removed' }> {
+    const out: Array<{ text: string; kind: 'same' | 'added' | 'removed' }> = []
+    for (let it = this.head; it; it = it.right) {
+      const then = visibleAt(it, sv)
+      const now = !it.deleted
+      if (!then && !now) continue
+      const kind = then && now ? 'same' : now ? 'added' : 'removed'
+      const last = out[out.length - 1]
+      if (last && last.kind === kind) last.text += it.char
+      else out.push({ text: it.char, kind })
+    }
+    return out
+  }
+
+  /**
    * Make the text look like it did at `sv`, using new ops only. Nothing is rewound:
    * chars added since are deleted, chars removed since are re-inserted right after
    * their own tombstones. Concurrent edits by others merge as usual.
